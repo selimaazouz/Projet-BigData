@@ -1,7 +1,6 @@
 import yfinance as yf
 import json
 import os
-import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, input_file_name, regexp_extract
 from pyspark.sql.functions import avg
