@@ -215,4 +215,115 @@ spark-shell
 - Ouvrir `close_evolution.png`
 - Ouvrir `volatility_evolution.png`
 
+##  Passage à un Grand Dataset : Traitement en Grande Échelle
+Pour tester la scalabilité et la performance de notre pipeline, nous avons simulé un **grand dataset** (~1 To de données) en multipliant les fichiers initiaux. Le traitement est divisé en **quatre étapes** :
+
+###  Étape 1 : Multiplication des Données avec `multdatasimport.py`
+Afin de simuler un dataset massif, nous générons plusieurs copies des fichiers d'origine en ajoutant un bruit aléatoire aux valeurs financières.
+
+#### Fonctionnement du script :
+- Téléchargement des données boursières pour chaque entreprise via `yFinance`.
+- Ajout de **copies** des données originales avec des variations aléatoires sur les prix et le volume.
+- Stockage des fichiers modifiés dans **HDFS**.
+
+ **Exécution du script :**
+```sh
+python3 Multdatas.py
+```
+ **Vérification des fichiers stockés sur HDFS :**
+```sh
+hdfs dfs -ls /user/azouz/raw_stock_data/
+```
+
+---
+
+###  Étape 2 : Fusion des Données avec `Mergefiles.py`
+Après la génération des copies, nous fusionnons les fichiers d'un même ticker en un seul fichier JSON.
+
+#### Fonctionnement du script :
+- Chargement de **toutes les copies** d’un même ticker depuis HDFS.
+- Fusion des données en un seul fichier JSON.
+- Stockage des fichiers fusionnés dans un répertoire dédié sur HDFS.
+
+ **Exécution du script :**
+```sh
+python3 Mergefiles.py
+```
+ **Vérification des fichiers fusionnés sur HDFS :**
+```sh
+hdfs dfs -ls /user/azouz/merged_stock_data/
+```
+
+---
+
+###  Étape 3 : Traitement et Nettoyage avec `Traitdataset.py`
+Une fois les fichiers fusionnés, nous utilisons Apache Spark pour nettoyer et structurer les données.
+
+#### Fonctionnement du script :
+- Chargement des fichiers JSON fusionnés depuis HDFS.
+- Suppression des **valeurs aberrantes** (exemple : prix négatifs, volumes invalides).
+- Transformation des dates en variables exploitables (`Year`, `Month`, `DayOfWeek`).
+- Calcul des **indicateurs financiers** :
+  - `Daily_Return` : variation quotidienne du prix de clôture.
+  - `Intra_Day_Volatility` : volatilité intrajournalière basée sur les prix `High` et `Low`.
+- Sauvegarde des données traitées au format **Parquet**.
+
+ **Exécution du script :**
+```sh
+python3 Traitdataset.py
+```
+ **Vérification des fichiers Parquet traités :**
+```sh
+hdfs dfs -ls /user/azouz/processed_stock_data.parquet
+```
+
+---
+
+###  Étape 4 : Analyse et Visualisation avec `Graph.py`
+Nous générons des graphiques pour visualiser les tendances des prix et de la volatilité au fil des années.
+
+#### Fonctionnement du script :
+- Chargement des fichiers **Parquet** traités.
+- Calcul des **moyennes annuelles** des prix de clôture et de la volatilité.
+- Création de **graphiques temporels** :
+  - Évolution du prix de clôture moyen pour chaque entreprise.
+  - Variation de la volatilité en fonction du temps.
+- Sauvegarde des graphiques sous format PNG.
+
+ **Exécution du script :**
+```sh
+python3 Graph.py
+```
+ **Vérification des graphiques générés :**
+- `close_evolution.png` : évolution des prix de clôture.
+- `volatility_evolution.png` : évolution de la volatilité intra-journalière.
+
+---
+
+##  Explication Détaillée des Scripts
+### 1 `Multdatas.py` - Multiplication des Données
+- Télécharge les données via `yFinance`.
+- Génère plusieurs copies modifiées avec du bruit aléatoire.
+- Stocke les fichiers sur HDFS.
+
+### 2 `Mergefiles.py` - Fusion des Fichiers JSON
+- Charge toutes les copies JSON d'un même ticker.
+- Fusionne les copies en un seul fichier.
+- Stocke les fichiers fusionnés sur HDFS.
+
+### 3 `Traitdataset.py` - Nettoyage et Prétraitement des Données
+- Charge les fichiers JSON fusionnés.
+- Filtre les valeurs aberrantes.
+- Ajoute des colonnes temporelles (`Year`, `Month`, `DayOfWeek`).
+- Calcule des indicateurs financiers (`Daily_Return`, `Intra_Day_Volatility`).
+- Sauvegarde les données nettoyées au format **Parquet**.
+
+### 4 `Graph.py` - Analyse et Visualisation
+- Charge les fichiers Parquet traités.
+- Calcule les moyennes annuelles des prix et de la volatilité.
+- Génère des graphiques et les enregistre sous format PNG.
+
+---
+
+ **Grâce à ce pipeline de traitement à grande échelle, nous pouvons traiter et analyser efficacement un dataset massif de données boursières en utilisant Apache Spark et HDFS.**
 ## Prédiction
