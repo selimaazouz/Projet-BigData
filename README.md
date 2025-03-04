@@ -22,12 +22,16 @@ Ce projet vise à récupérer, traiter et analyser des données boursières hist
 ## Simulation de Données Massives (Big Data)
 Au départ, nous avons testé notre code sur les données réelles de 2000 à 2024, permettant de tracer des courbes basées sur des données authentiques. Ensuite, pour tester la scalabilité du code, nous avons multiplié les données et les avons stockées sur **HDFS** afin d'exécuter nos traitements sur un grand volume de données (~1 To).
 
+---
+
 ## Installation et Configuration
+
 ### 1. Prérequis
 Avant d'exécuter ce projet, assurez-vous d'avoir installé :
 - **Python 3**
 - **pip**
-- **Java 8 ou supérieur** (Requis pour Apache Spark)
+- **Java 17** (Requis pour Apache Spark)
+- **Maven**
 - **Apache Spark**
 - **Hadoop (stockage en HDFS)**
 
@@ -37,7 +41,104 @@ Exécutez la commande suivante pour installer les bibliothèques nécessaires :
 pip install yfinance pandas matplotlib pyspark
 ```
 
-### 3. Organisation du Dossier
+### 3. Install Java
+Installez le Java Development Kit (JDK) version 17.
+
+Vérifiez que Java est installé :
+```sh
+java --version
+```
+
+Assurez-vous que la variable d'environnement `JAVA_HOME` est définie :
+```sh
+echo $JAVA_HOME
+```
+
+### 4. Install Maven
+Vérifiez que Maven est installé :
+```sh
+mvn --version
+```
+
+### 5. Install Hadoop
+Téléchargez et extrayez Hadoop (version 3.4.1) dans `./tmp/` :
+```sh
+mkdir -p tmp/
+cd tmp/
+curl https://dlcdn.apache.org/hadoop/common/stable/hadoop-3.4.1.tar.gz -o hadoop-3.4.1.tar.gz
+tar -xvzf hadoop-3.4.1.tar.gz
+cd ../
+```
+
+Définissez `HADOOP_HOME` dans votre shell (à répéter à chaque ouverture de shell) :
+```sh
+export HADOOP_HOME="$(realpath ./tmp/hadoop-3.4.1)"
+```
+
+À ce stade, le script suivant devrait s'exécuter avec succès :
+```sh
+./scripts/check-system.sh
+```
+
+### 6. Démarrer HDFS
+Pour démarrer les démons HDFS sur une seule machine, configurez un cluster Hadoop pseudo-distribué où tous les composants (NameNode, DataNode, etc.) s'exécutent sur une seule machine.
+
+#### Configurer Hadoop
+Mettez à jour les fichiers de configuration dans le répertoire `$HADOOP_HOME/etc/hadoop` :
+
+`$HADOOP_HOME/etc/hadoop/core-site.xml` :
+```xml
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://localhost:9000</value>
+  </property>
+</configuration>
+```
+
+`$HADOOP_HOME/etc/hadoop/hdfs-site.xml` :
+```xml
+<configuration>
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+  </property>
+</configuration>
+```
+
+#### Formater le système de fichiers HDFS
+Formatez le NameNode avant de démarrer HDFS pour la première fois :
+```sh
+"$HADOOP_HOME/bin/hdfs" namenode -format
+```
+
+#### Démarrer les démons HDFS
+Démarrez le NameNode dans un terminal :
+```sh
+"$HADOOP_HOME/bin/hdfs" namenode
+```
+
+Démarrez le DataNode dans un autre terminal (n'oubliez pas de définir `$HADOOP_HOME`) :
+```sh
+"$HADOOP_HOME/bin/hdfs" datanode
+```
+
+Créez votre répertoire "home" dans HDFS :
+```sh
+"$HADOOP_HOME/bin/hdfs" dfs -mkdir -p "/user/$USER"
+```
+
+À ce stade, le script suivant devrait s'exécuter avec succès :
+```sh
+./scripts/check-hdfs.sh
+```
+
+Accédez à l'interface web HDFS en ouvrant cette URL dans votre navigateur :
+<http://localhost:9870>
+
+---
+
+## Organisation du Dossier
 Le projet crée automatiquement les dossiers suivants :
 ```
 ├── raw_stock_data/        # Stocke les fichiers JSON
@@ -114,4 +215,4 @@ spark-shell
 - Ouvrir `close_evolution.png`
 - Ouvrir `volatility_evolution.png`
 
-
+## Prédiction
