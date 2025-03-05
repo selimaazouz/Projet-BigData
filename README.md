@@ -199,6 +199,7 @@ hdfs dfs -du -h /user/azouz/raw_stock_data
 | `close_evolution.png` | Graphique de l'évolution du prix de clôture moyen |
 | `volatility_evolution.png` | Graphique de l'évolution de la volatilité moyenne |
 | `generate_large_dataset.py` | Script pour multiplier et stocker les données sur HDFS |
+| `stock_pred_spark.py` | Prediction des stocks futurs avec un modèle LSFM |
 
 ## Comment Vérifier les Résultats ?
 1. **Vérifier les données brutes JSON** :
@@ -326,4 +327,50 @@ python3 Graph.py
 ---
 
  **Grâce à ce pipeline de traitement à grande échelle, nous pouvons traiter et analyser efficacement un dataset massif de données boursières en utilisant Apache Spark et HDFS.**
+
+---
 ## Prédiction
+Le module de **prédiction** utilise un modèle de réseau de neurones LSTM pour estimer les cours futurs des actions. Voici comment il fonctionne :
+
+### **Étapes du Module de Prédiction**
+
+1. **Chargement des Données depuis HDFS**  
+   - Utilisation de PySpark pour lire le fichier JSON stocké dans HDFS.
+   - Conversion des données en un DataFrame Pandas pour faciliter le traitement.
+
+2. **Prétraitement des Données**  
+   - Conversion de la colonne `Date` en type datetime, tri des données par date et définition de cette colonne comme index.
+   - Calcul de différents indicateurs techniques :  
+     - **Moyennes mobiles** (`MA5`, `MA20`)
+     - **Variations de prix** et **volume** (`Price_Change`, `Price_Change_5d`, `Volume_Change`)
+     - **Volatilité** : Calculée à partir des prix `High`, `Low` et `Open`
+     - **RSI** : Indicateur de surachat/survente
+
+3. **Création des Séquences Temporelles**  
+   - Transformation des données en séquences de longueur fixe (par défaut 60 jours) pour constituer l'entrée du modèle LSTM.
+   - Chaque séquence correspond à un ensemble de caractéristiques sur 60 jours, la valeur cible étant le prix à prédire le jour suivant.
+
+4. **Construction et Entraînement du Modèle LSTM**  
+   - Création d'un modèle séquentiel composé de deux couches LSTM (50 neurones chacune) avec des couches Dropout pour limiter l'overfitting.
+   - Compilation du modèle avec l'optimiseur `adam` et la fonction de perte `mean_squared_error`.
+   - Entraînement du modèle sur les données d'entraînement (80% des données) avec une validation sur 10% des données.
+
+5. **Prédiction et Visualisation**  
+   - Prédiction sur un ensemble de test pour évaluer les performances du modèle.
+   - Inversion de la normalisation pour obtenir les valeurs de cours réelles.
+   - Génération d'un graphique comparant les valeurs réelles et prédites, sauvegardé sous `META_prediction.png`.
+   - Prédiction des cours pour les 30 jours futurs en glissant la fenêtre de séquence à chaque itération.
+
+### **Exécution du Module de Prédiction**
+Pour lancer la prédiction, exécutez le script principal :
+```sh
+python3 stock_pred_pyspark.py
+```
+Le script se connectera à HDFS pour récupérer le fichier JSON (par exemple, `META_original.json`), effectuera le prétraitement et l'entraînement du modèle LSTM, puis affichera les prévisions futures dans la console tout en sauvegardant le graphique des prédictions.
+
+### **Dépendances Spécifiques**
+- **TensorFlow/Keras** pour la construction et l'entraînement du modèle LSTM.
+- **Scikit-learn** pour la normalisation des données et la séparation train/test.
+- **Matplotlib** pour la visualisation des résultats.
+
+---

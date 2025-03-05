@@ -74,7 +74,7 @@ def plot_predictions(actual, predicted, title):
     plt.plot(predicted, label='Predicted')
     plt.title(title)
     plt.legend()
-    plt.savefig('prediction.png')
+    plt.savefig('META_prediction.png')
     plt.close()
 
 # Main execution
@@ -105,7 +105,7 @@ def predict_stock_prices(hdfs_path, target_column='Close', forecast_days=30):
     y_test_orig = scaler.inverse_transform(y_test_scaled)[:, target_idx]
     y_pred_orig = scaler.inverse_transform(y_pred_scaled)[:, target_idx]
     
-    plot_predictions(y_test_orig, y_pred_orig, f'Stock Price Prediction - {target_column}')
+    plot_predictions(y_test_orig, y_pred_orig, f'Stock Price Prediction META - {target_column}')
     
     last_sequence = scaled_data[-seq_length:].reshape(1, seq_length, len(features))
     future_predictions = []
@@ -141,5 +141,5 @@ def predict_stock_prices(hdfs_path, target_column='Close', forecast_days=30):
     }
 
 if __name__ == "__main__":
-    hdfs_path = "hdfs://localhost:9000/user/augusto-mp/raw_stock_data/PYPL_original.json"
+    hdfs_path = "hdfs://localhost:9000/user/augusto-mp/raw_stock_data/META_original.json"
     results = predict_stock_prices(hdfs_path)
