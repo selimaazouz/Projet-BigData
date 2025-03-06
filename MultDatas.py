@@ -6,8 +6,11 @@ import numpy as np
 import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, input_file_name, regexp_extract, year, month, dayofweek, round
+from pyspark import SparkContext, SparkConf
 
-num_copies = 5  
+
+
+num_copies = 500
 hdfs_input_path = "hdfs://localhost:9000/user/azouz/raw_stock_data/"
 hdfs_merged_path = "hdfs://localhost:9000/user/azouz/merged_stock_data/"
 
@@ -60,15 +63,21 @@ def download_and_store_stock_data(ticker):
             # Stocker chaque copie sous un fichier séparé (ex: `AAPL_1.json`)
             hdfs_file_path = f"{hdfs_input_path}{ticker}_{i}.json"
             spark.createDataFrame([(json.dumps(modified_data),)], ["json_string"]) \
-                .write.mode("overwrite").text(hdfs_file_path)
+                .write.mode("overwrite").json(hdfs_file_path)
 
             print(f" Copie {i} de {ticker} stockée sur HDFS : {hdfs_file_path}")
 
     except Exception as e:
-        print(f"⚠️ Erreur lors du téléchargement pour {ticker}: {e}")
+        print(f" Erreur lors du téléchargement pour {ticker}: {e}")
 
-#  Exécution SÉQUENTIELLE (pas de parallélisme)
+#  Exécution SÉQUENTIELLE 
 for ticker in tickers:
     download_and_store_stock_data(ticker)
 
+# Exécution en parallèle avec Spark
+sc = SparkContext.getOrCreate(SparkConf().setAppName("StockDataProcessing"))
+sc.parallelize(tickers).foreach(download_and_store_stock_data)
+
+
 print(" Tous les fichiers originaux et leurs copies ont été stockés sur HDFS !")
+
