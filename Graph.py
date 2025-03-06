@@ -1,10 +1,10 @@
-
+from pyspark.sql import SparkSession
 import matplotlib.pyplot as plt
 import pandas as pd
 
 tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "BA", "IBM", 
            "INTC", "ORCL", "PYPL", "ADBE", "DIS", "WMT", "JPM", "V", "KO", "PEP", "MCD", "CSCO", "XOM", "CVX"]
-from pyspark.sql import SparkSession
+
 
 
 spark = SparkSession.builder.appName("StockDataVisualization").getOrCreate()
@@ -24,7 +24,7 @@ def plot_stock_data(ticker):
 
         # Vérifier si les colonnes essentielles existent
         if "Date" not in df_pandas.columns or "Close" not in df_pandas.columns:
-            print(f"⚠️ Colonnes manquantes pour {ticker}, impossible de tracer.")
+            print(f" Colonnes manquantes pour {ticker}, impossible de tracer.")
             return
 
         # Trier par date pour un affichage correct
@@ -46,7 +46,7 @@ def plot_stock_data(ticker):
         plt.show()
 
     except Exception as e:
-        print(f"⚠️ Erreur lors de la génération du graphique pour {ticker}: {e}")
+        print(f" Erreur lors de la génération du graphique pour {ticker}: {e}")
 
 #  Générer un graphique pour chaque entreprise fusionnée
 for ticker in tickers:
@@ -54,9 +54,7 @@ for ticker in tickers:
 
 print(" Tous les graphiques ont été générés !")
 
-import matplotlib.pyplot as plt
-import numpy as np
-from pyspark.sql import SparkSession
+
 from pyspark.sql.functions import col, year, avg
 
 

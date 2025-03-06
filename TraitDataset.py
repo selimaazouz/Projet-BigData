@@ -19,7 +19,7 @@ tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD
 
 all_data = []
 
-#  Chargement et transformation des données
+# Chargement et transformation des données
 for ticker in tickers:
     print(f" Traitement des données pour {ticker}...")
     try:
@@ -29,7 +29,7 @@ for ticker in tickers:
         # Ajouter une colonne `Ticker`
         df_spark = df_spark.withColumn("Ticker", lit(ticker))
 
-        #  Filtrage des valeurs aberrantes
+        # Filtrage des valeurs aberrantes
         df_spark = df_spark.filter(
             (col("Close") > 0) & (col("Close") < 100000) &
             (col("Open") > 0) & (col("Open") < 100000) &
@@ -48,13 +48,13 @@ for ticker in tickers:
         df_spark = df_spark.withColumn("Intra_Day_Volatility", round(((col("High") - col("Low")) / col("Open")) * 100, 2))
 
         #  Aperçu des données transformées
-        print(f"Aperçu des données pour {ticker} :")
+        print(f" Aperçu des données pour {ticker} :")
         df_spark.show(5)  # Affiche les 5 premières lignes
 
         all_data.append(df_spark)
 
     except Exception as e:
-        print(f" Erreur lors du traitement pour {ticker}: {e}")
+        print(f"⚠️ Erreur lors du traitement pour {ticker}: {e}")
 
 #  Fusion des données
 if all_data:
@@ -64,7 +64,7 @@ if all_data:
 
     #  Sauvegarde des données traitées en Parquet
     final_df.write.mode("overwrite").parquet(parquet_output_path)
-    print(f" Données traitées stockées en Parquet : {parquet_output_path}")
+    print(f"Données traitées stockées en Parquet : {parquet_output_path}")
 
     #  Statistiques descriptives
     print(" Statistiques descriptives après filtrage :")
@@ -98,7 +98,7 @@ if all_data:
 
     plt.xlabel("Année")
     plt.ylabel("Prix de Clôture Moyen")
-    plt.title("Évolution du Prix de Clôture Moyen par Entreprise")
+    plt.title(" Évolution du Prix de Clôture Moyen par Entreprise")
     plt.legend()
     plt.grid(True)
     plt.savefig("close_evolution.png")
