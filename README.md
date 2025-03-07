@@ -301,30 +301,7 @@ python3 Graph.py
 
 ---
 
-##  Explication Détaillée des Scripts
-### 1 `Multdatas.py` - Multiplication des Données
-- Télécharge les données via `yFinance`.
-- Génère plusieurs copies modifiées avec du bruit aléatoire.
-- Stocke les fichiers sur HDFS.
 
-### 2 `Mergefiles.py` - Fusion des Fichiers JSON
-- Charge toutes les copies JSON d'un même ticker.
-- Fusionne les copies en un seul fichier.
-- Stocke les fichiers fusionnés sur HDFS.
-
-### 3 `Traitdataset.py` - Nettoyage et Prétraitement des Données
-- Charge les fichiers JSON fusionnés.
-- Filtre les valeurs aberrantes.
-- Ajoute des colonnes temporelles (`Year`, `Month`, `DayOfWeek`).
-- Calcule des indicateurs financiers (`Daily_Return`, `Intra_Day_Volatility`).
-- Sauvegarde les données nettoyées au format **Parquet**.
-
-### 4 `Graph.py` - Analyse et Visualisation
-- Charge les fichiers Parquet traités.
-- Calcule les moyennes annuelles des prix et de la volatilité.
-- Génère des graphiques et les enregistre sous format PNG.
-
----
 
  **Grâce à ce pipeline de traitement à grande échelle, nous pouvons traiter et analyser efficacement un dataset massif de données boursières en utilisant Apache Spark et HDFS.**
 
